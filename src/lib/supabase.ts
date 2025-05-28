@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Create a simple console-based logger for the browser
 const logger = {
@@ -56,13 +57,13 @@ export async function signIn(email: string, password: string) {
 
 export async function signInAsGuest() {
   try {
-    // Generate a random email and password for guest access
-    const randomId = Math.random().toString(36).substring(2, 15);
-    const timestamp = Date.now();
-    const email = `guest-${randomId}-${timestamp}@guest.demo.com`;
-    const password = `Guest${randomId}${timestamp}!`;
+    // Generate a valid-looking email using UUID
+    const guestId = uuidv4().slice(0, 8);
+    const email = `guest.${guestId}@resumeai.demo`;
+    const password = `Guest${uuidv4().slice(0, 8)}!2024`;
     
-    const { data, error } = await supabase.auth.signUp({
+    // First try to sign up
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -72,15 +73,24 @@ export async function signInAsGuest() {
       }
     });
     
-    if (!error) {
-      // Auto sign in the guest user
-      return await signIn(email, password);
+    if (signUpError) {
+      // If sign up fails, try to sign in (in case the account already exists)
+      const { data: signInData, error: signInError } = await signIn(email, password);
+      
+      if (signInError) {
+        throw new Error('Failed to create or sign in as guest user');
+      }
+      
+      return { data: signInData, error: null };
     }
     
-    return { data, error };
+    return { data: signUpData, error: null };
   } catch (error) {
     logger.error('Error during guest sign in:', error);
-    return { data: null, error };
+    return { 
+      data: null, 
+      error: new Error('Unable to create guest account. Please try again or sign up with an email.')
+    };
   }
 }
 
