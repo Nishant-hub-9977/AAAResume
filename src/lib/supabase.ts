@@ -1,22 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
-import winston from 'winston';
-import sgMail from '@sendgrid/mail';
 
-// Initialize Winston logger
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    }),
-  ],
-});
-
-// Initialize SendGrid
-if (import.meta.env.VITE_SENDGRID_API_KEY) {
-  sgMail.setApiKey(import.meta.env.VITE_SENDGRID_API_KEY);
-}
+// Create a simple console-based logger for the browser
+const logger = {
+  info: (message: string, ...args: any[]) => console.log(message, ...args),
+  warn: (message: string, ...args: any[]) => console.warn(message, ...args),
+  error: (message: string, ...args: any[]) => console.error(message, ...args)
+};
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -28,23 +17,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function sendWelcomeEmail(email: string) {
-  if (!import.meta.env.VITE_SENDGRID_API_KEY) {
-    logger.warn('SendGrid API key not configured, skipping welcome email');
-    return;
-  }
-
-  try {
-    await sgMail.send({
-      to: email,
-      from: import.meta.env.VITE_SENDGRID_FROM_EMAIL || 'noreply@resumeai.demo.com',
-      subject: 'Welcome to ResumeAI',
-      text: 'Thank you for signing up for ResumeAI. We\'re excited to help you streamline your hiring process.',
-      html: '<h1>Welcome to ResumeAI</h1><p>Thank you for signing up. We\'re excited to help you streamline your hiring process.</p>',
-    });
-    logger.info(`Welcome email sent to ${email}`);
-  } catch (error) {
-    logger.error('Error sending welcome email:', error);
-  }
+  // Email sending should be handled by a server-side function
+  // We'll log a message for now
+  logger.info(`Welcome email would be sent to ${email}`);
 }
 
 export async function signUp(email: string, password: string) {
@@ -206,7 +181,7 @@ export async function getResumeAnalysis(resumeId: string) {
   }
 }
 
-export async function saveJobRequirement(jobRequirement: Omit<JobRequirement, 'id' | 'created_at'>) {
+export async function saveJobRequirement(jobRequirement: any) {
   try {
     const { data, error } = await supabase
       .from('job_requirements')
@@ -260,7 +235,7 @@ export async function getShortlistedCandidates(userId: string, jobRequirementId?
   }
 }
 
-export async function shortlistCandidate(candidateData: Omit<ShortlistedCandidate, 'id' | 'shortlisted_at'>) {
+export async function shortlistCandidate(candidateData: any) {
   try {
     const { data, error } = await supabase
       .from('shortlisted_candidates')
