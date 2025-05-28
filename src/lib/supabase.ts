@@ -30,7 +30,7 @@ export async function signIn(email: string, password: string) {
 export async function signInAsGuest() {
   // Generate a random email and password for guest access
   const randomId = Math.random().toString(36).substring(2, 15);
-  const email = `user${randomId}@guestmail.example.com`;
+  const email = `guest-${randomId}@guest.demo.com`;
   const password = `Guest${randomId}!`;
   
   const { data, error } = await supabase.auth.signUp({
