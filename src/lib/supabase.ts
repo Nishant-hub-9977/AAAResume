@@ -14,7 +14,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   logger.error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
 
 async function sendWelcomeEmail(email: string) {
   // Email sending should be handled by a server-side function
@@ -59,15 +65,18 @@ export async function signInAsGuest() {
     const { data, error } = await supabase.auth.signInAnonymously();
     
     if (error) {
-      throw error;
+      const errorMessage = error.message.includes('Anonymous sign-ins are disabled')
+        ? 'Guest access is currently unavailable. Please sign up with an email.'
+        : error.message;
+      return { data: null, error: new Error(errorMessage) };
     }
     
     return { data, error: null };
   } catch (error) {
     logger.error('Error during anonymous sign in:', error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Failed to sign in as guest')
+    return {
+      data: null,
+      error: new Error('Unable to continue as guest. Please try again later.')
     };
   }
 }
