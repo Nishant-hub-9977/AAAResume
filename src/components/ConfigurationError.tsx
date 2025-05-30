@@ -33,3 +33,5 @@ const ConfigurationError: React.FC = () => (
     </div>
   </div>
 );
+
+export default ConfigurationError
