@@ -5,6 +5,9 @@ export interface User {
   email: string;
   created_at: string;
   last_sign_in?: string;
+  app_metadata?: {
+    provider?: string;
+  };
 }
 
 export interface Resume {
@@ -51,10 +54,13 @@ export interface ShortlistedCandidate {
   notes: string;
   shortlisted_at: string;
   user_id: string;
+  resumes?: Resume;
+  job_requirements?: JobRequirement;
 }
 
 export type SortDirection = 'asc' | 'desc';
 export type SortField = 'name' | 'uploaded_at' | 'match_score';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface FilterOptions {
   search: string;
