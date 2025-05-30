@@ -260,3 +260,8 @@ export async function removeFromShortlist(candidateId: string) {
     return { error };
   }
 }
+
+// Export a function to check if we have valid credentials
+export const hasValidSupabaseCredentials = () => {
+  return !!supabaseUrl && !!supabaseAnonKey;
+};
