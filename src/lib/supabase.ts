@@ -185,6 +185,42 @@ export async function uploadResume(file: File, userId: string) {
   }
 }
 
+export async function deleteResume(resumeId: string, userId: string) {
+  try {
+    // Get the resume details first
+    const { data: resume, error: fetchError } = await supabase
+      .from('resumes')
+      .select('file_path')
+      .eq('id', resumeId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!resume) throw new Error('Resume not found');
+
+    // Delete the file from storage
+    const { error: storageError } = await supabase.storage
+      .from('resumes')
+      .remove([resume.file_path]);
+
+    if (storageError) throw storageError;
+
+    // Delete the resume record
+    const { error: deleteError } = await supabase
+      .from('resumes')
+      .delete()
+      .eq('id', resumeId)
+      .eq('user_id', userId);
+
+    if (deleteError) throw deleteError;
+
+    return { error: null };
+  } catch (error) {
+    logger.error('Error deleting resume:', error);
+    return { error };
+  }
+}
+
 export async function getResumes(userId: string) {
   try {
     const { data, error } = await supabase
@@ -245,6 +281,52 @@ export async function getJobRequirements(userId: string) {
   }
 }
 
+export async function checkIfAlreadyShortlisted(resumeId: string, jobRequirementId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('shortlisted_candidates')
+      .select('id')
+      .eq('resume_id', resumeId)
+      .eq('job_requirement_id', jobRequirementId)
+      .single();
+
+    return { exists: !!data, error };
+  } catch (error) {
+    logger.error('Error checking shortlist status:', error);
+    return { exists: false, error };
+  }
+}
+
+export async function shortlistCandidate(candidateData: any) {
+  try {
+    // Check if already shortlisted
+    const { exists, error: checkError } = await checkIfAlreadyShortlisted(
+      candidateData.resume_id,
+      candidateData.job_requirement_id
+    );
+
+    if (checkError) throw checkError;
+    if (exists) {
+      return {
+        data: null,
+        error: new Error('This candidate is already shortlisted for this job')
+      };
+    }
+
+    // If not shortlisted, proceed with shortlisting
+    const { data, error } = await supabase
+      .from('shortlisted_candidates')
+      .insert(candidateData)
+      .select()
+      .single();
+      
+    return { data, error };
+  } catch (error) {
+    logger.error('Error shortlisting candidate:', error);
+    return { data: null, error };
+  }
+}
+
 export async function getShortlistedCandidates(userId: string, jobRequirementId?: string) {
   try {
     let query = supabase
@@ -265,21 +347,6 @@ export async function getShortlistedCandidates(userId: string, jobRequirementId?
     return { data, error };
   } catch (error) {
     logger.error('Error fetching shortlisted candidates:', error);
-    return { data: null, error };
-  }
-}
-
-export async function shortlistCandidate(candidateData: any) {
-  try {
-    const { data, error } = await supabase
-      .from('shortlisted_candidates')
-      .insert(candidateData)
-      .select()
-      .single();
-      
-    return { data, error };
-  } catch (error) {
-    logger.error('Error shortlisting candidate:', error);
     return { data: null, error };
   }
 }

@@ -1,19 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { File, FileText, Clock, Award } from 'lucide-react';
+import { File, FileText, Clock, Award, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '../ui/Card';
 import Badge from '../ui/Badge';
+import Button from '../ui/Button';
 import { formatDistanceToNow } from 'date-fns';
 import { Resume } from '../../types';
 
 interface ResumeCardProps {
   resume: Resume;
   showAnalysisStatus?: boolean;
+  onDelete?: (resumeId: string) => void;
 }
 
 const ResumeCard: React.FC<ResumeCardProps> = ({ 
   resume, 
-  showAnalysisStatus = true 
+  showAnalysisStatus = true,
+  onDelete
 }) => {
   const fileTypeIcon = () => {
     switch (resume.file_type) {
@@ -40,25 +43,43 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    if (onDelete && window.confirm('Are you sure you want to delete this resume?')) {
+      onDelete(resume.id);
+    }
+  };
+
   return (
     <Link to={`/resumes/${resume.id}`}>
       <Card className="h-full transition-all duration-200 hover:shadow-md hover:border-indigo-200">
         <CardContent className="p-4">
-          <div className="flex items-start">
-            <div className="h-10 w-10 flex items-center justify-center rounded-md bg-indigo-50 mr-3">
-              {fileTypeIcon()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
-                {resume.name}
-              </h3>
-              <div className="mt-1 flex items-center text-xs text-gray-500">
-                <Clock className="mr-1 h-3 w-3" />
-                <span>
-                  Uploaded {formatDistanceToNow(new Date(resume.uploaded_at), { addSuffix: true })}
-                </span>
+          <div className="flex items-start justify-between">
+            <div className="flex items-start flex-1">
+              <div className="h-10 w-10 flex items-center justify-center rounded-md bg-indigo-50 mr-3">
+                {fileTypeIcon()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-gray-900 truncate">
+                  {resume.name}
+                </h3>
+                <div className="mt-1 flex items-center text-xs text-gray-500">
+                  <Clock className="mr-1 h-3 w-3" />
+                  <span>
+                    Uploaded {formatDistanceToNow(new Date(resume.uploaded_at), { addSuffix: true })}
+                  </span>
+                </div>
               </div>
             </div>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-red-500"
+                onClick={handleDelete}
+                icon={<Trash2 className="h-4 w-4" />}
+              />
+            )}
           </div>
           
           <div className="mt-3 flex items-center justify-between">

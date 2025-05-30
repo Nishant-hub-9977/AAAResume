@@ -7,11 +7,13 @@ import Input from '../../components/ui/Input';
 import ResumeCard from '../../components/resume/ResumeCard';
 import ResumeUploader from '../../components/resume/ResumeUploader';
 import { useAuth } from '../../contexts/AuthContext';
-import { getResumes } from '../../lib/supabase';
+import { getResumes, deleteResume } from '../../lib/supabase';
 import { Resume } from '../../types';
+import { useToast } from '../../contexts/ToastContext';
 
 const ResumesPage: React.FC = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
@@ -32,6 +34,7 @@ const ResumesPage: React.FC = () => {
       setResumes(data || []);
     } catch (error) {
       console.error('Error fetching resumes:', error);
+      showToast('Failed to load resumes', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -44,6 +47,25 @@ const ResumesPage: React.FC = () => {
   const handleUploadSuccess = () => {
     setShowUploader(false);
     fetchResumes();
+  };
+
+  const handleDeleteResume = async (resumeId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await deleteResume(resumeId, user.id);
+      
+      if (error) throw error;
+      
+      setResumes(resumes.filter(resume => resume.id !== resumeId));
+      showToast('Resume deleted successfully', 'success');
+    } catch (error) {
+      console.error('Error deleting resume:', error);
+      showToast(
+        error instanceof Error ? error.message : 'Failed to delete resume',
+        'error'
+      );
+    }
   };
 
   const toggleSort = (field: 'uploaded_at' | 'name') => {
@@ -153,7 +175,11 @@ const ResumesPage: React.FC = () => {
               ) : filteredAndSortedResumes.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredAndSortedResumes.map((resume) => (
-                    <ResumeCard key={resume.id} resume={resume} />
+                    <ResumeCard 
+                      key={resume.id} 
+                      resume={resume}
+                      onDelete={handleDeleteResume}
+                    />
                   ))}
                 </div>
               ) : (

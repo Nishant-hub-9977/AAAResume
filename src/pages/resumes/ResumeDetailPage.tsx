@@ -7,7 +7,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Alert from '../../components/ui/Alert';
 import { useAuth } from '../../contexts/AuthContext';
-import { getResumes, getResumeAnalysis, getJobRequirements, shortlistCandidate } from '../../lib/supabase';
+import { getResumes, getResumeAnalysis, getJobRequirements, shortlistCandidate, checkIfAlreadyShortlisted } from '../../lib/supabase';
 import { Resume, ResumeAnalysis, JobRequirement } from '../../types';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -22,6 +22,7 @@ const ResumeDetailPage: React.FC = () => {
   const [isShortlisting, setIsShortlisting] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [jobRequirements, setJobRequirements] = useState<JobRequirement[]>([]);
+  const [isAlreadyShortlisted, setIsAlreadyShortlisted] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,6 +53,7 @@ const ResumeDetailPage: React.FC = () => {
         setJobRequirements(jobsData || []);
       } catch (error) {
         console.error('Error fetching resume details:', error);
+        showToast('Failed to load resume details', 'error');
       } finally {
         setIsLoading(false);
       }
@@ -59,6 +61,25 @@ const ResumeDetailPage: React.FC = () => {
     
     fetchData();
   }, [user, id, navigate]);
+
+  // Check if already shortlisted when job selection changes
+  useEffect(() => {
+    const checkShortlistStatus = async () => {
+      if (!user || !resume || !selectedJobId) {
+        setIsAlreadyShortlisted(false);
+        return;
+      }
+
+      try {
+        const { exists } = await checkIfAlreadyShortlisted(resume.id, selectedJobId);
+        setIsAlreadyShortlisted(exists);
+      } catch (error) {
+        console.error('Error checking shortlist status:', error);
+      }
+    };
+
+    checkShortlistStatus();
+  }, [selectedJobId, resume]);
 
   const handleShortlist = async () => {
     if (!user || !resume || !selectedJobId) {
@@ -79,9 +100,10 @@ const ResumeDetailPage: React.FC = () => {
         user_id: user.id,
       });
       
-      if (error) throw new Error(error.message);
+      if (error) throw error;
       
       showToast('Candidate has been shortlisted successfully', 'success');
+      setIsAlreadyShortlisted(true);
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : 'Failed to shortlist candidate',
@@ -157,6 +179,7 @@ const ResumeDetailPage: React.FC = () => {
                     Download Resume
                   </Button>
                 </div>
+              
               </CardContent>
               
               {/* Shortlist Section */}
@@ -177,15 +200,21 @@ const ResumeDetailPage: React.FC = () => {
                     ))}
                   </select>
                   
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    isLoading={isShortlisting}
-                    disabled={!selectedJobId || isShortlisting}
-                    onClick={handleShortlist}
-                  >
-                    Shortlist Candidate
-                  </Button>
+                  {isAlreadyShortlisted ? (
+                    <Alert variant="info">
+                      This candidate is already shortlisted for this job.
+                    </Alert>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      isLoading={isShortlisting}
+                      disabled={!selectedJobId || isShortlisting || isAlreadyShortlisted}
+                      onClick={handleShortlist}
+                    >
+                      Shortlist Candidate
+                    </Button>
+                  )}
                 </div>
               </CardFooter>
             </Card>
