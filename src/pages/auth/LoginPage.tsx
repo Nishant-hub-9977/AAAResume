@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FileText, Mail, Lock } from 'lucide-react';
-import Input from '../../components/ui/Input';
+import FormField from '../../components/ui/FormField';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import { signIn, signInAsGuest } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,16 +14,32 @@ const LoginPage: React.FC = () => {
   const { setUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get the path the user was trying to access before being redirected to login
   const from = location.state?.from?.pathname || '/dashboard';
+
+  const validateForm = () => {
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+    
+    setEmailError(emailValidation);
+    setPasswordError(passwordValidation);
+    
+    return !emailValidation && !passwordValidation;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -82,13 +99,13 @@ const LoginPage: React.FC = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
-            <Alert variant="error\" className="mb-4">
+            <Alert variant="error" className="mb-4">
               {error}
             </Alert>
           )}
 
           <form className="space-y-6" onSubmit={handleLogin}>
-            <Input
+            <FormField
               label="Email address"
               id="email"
               name="email"
@@ -97,12 +114,14 @@ const LoginPage: React.FC = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              icon={<Mail className="h-5 w-5 text-gray-400" />}
+              onBlur={() => setEmailError(validateEmail(email))}
+              error={emailError}
+              icon={Mail}
               fullWidth
             />
 
             <div>
-              <Input
+              <FormField
                 label="Password"
                 id="password"
                 name="password"
@@ -111,7 +130,9 @@ const LoginPage: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                icon={<Lock className="h-5 w-5 text-gray-400" />}
+                onBlur={() => setPasswordError(validatePassword(password))}
+                error={passwordError}
+                icon={Lock}
                 fullWidth
               />
               <div className="text-sm text-right mt-1">
