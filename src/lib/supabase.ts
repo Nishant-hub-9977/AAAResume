@@ -101,6 +101,28 @@ export async function getCurrentUser() {
   }
 }
 
+export async function convertAnonymousUser(email: string, password: string) {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      email,
+      password,
+    });
+    
+    if (error) throw error;
+    
+    // Send welcome email after successful conversion
+    await sendWelcomeEmail(email);
+    
+    return { data, error: null };
+  } catch (error) {
+    logger.error('Error converting anonymous user:', error);
+    return {
+      data: null,
+      error: new Error('Failed to convert guest account. Please try again.')
+    };
+  }
+}
+
 export async function uploadResume(file: File, userId: string) {
   try {
     // Validate file type

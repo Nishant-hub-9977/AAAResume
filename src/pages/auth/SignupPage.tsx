@@ -4,16 +4,20 @@ import { FileText, Mail, Lock, User } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
-import { signUp } from '../../lib/supabase';
+import { signUp, convertAnonymousUser } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const isAnonymous = user?.app_metadata?.provider === 'anonymous';
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +39,24 @@ const SignupPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await signUp(email, password);
+      let result;
       
+      if (isAnonymous) {
+        // Convert anonymous account to permanent account
+        result = await convertAnonymousUser(email, password);
+      } else {
+        // Create new account
+        result = await signUp(email, password);
+      }
+      
+      const { error } = result;
       if (error) throw error;
       
-      setSuccess('Your account has been created. You can now sign in.');
+      setSuccess(isAnonymous 
+        ? 'Your guest account has been converted to a permanent account.' 
+        : 'Your account has been created. You can now sign in.'
+      );
+      
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -59,19 +76,23 @@ const SignupPage: React.FC = () => {
             <span className="ml-2 text-2xl font-bold text-gray-900">ResumeAI</span>
           </Link>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-            sign in to your existing account
-          </Link>
-        </p>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {isAnonymous ? 'Convert Guest Account' : 'Create your account'}
+        </h2>
+        {!isAnonymous && (
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              sign in to your existing account
+            </Link>
+          </p>
+        )}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
-            <Alert variant="error\" className="mb-4">
+            <Alert variant="error" className="mb-4">
               {error}
             </Alert>
           )}
@@ -129,7 +150,7 @@ const SignupPage: React.FC = () => {
                 isLoading={isLoading}
                 fullWidth
               >
-                Create Account
+                {isAnonymous ? 'Convert to Full Account' : 'Create Account'}
               </Button>
             </div>
           </form>
