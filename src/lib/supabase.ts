@@ -7,8 +7,9 @@ const logger = {
   error: (message: string, ...args: any[]) => console.error(message, ...args)
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Default values for development - these will be overridden by environment variables in production
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   logger.error('Missing Supabase environment variables');
@@ -63,9 +64,22 @@ export async function signIn(email: string, password: string) {
 
 export async function signInAsGuest() {
   try {
+    // Check if anonymous auth is enabled
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      throw new Error('Failed to check authentication status');
+    }
+    
+    // If user is already signed in, return early
+    if (session) {
+      return { data: { user: session.user }, error: null };
+    }
+    
     const { data, error } = await supabase.auth.signInAnonymously();
     
     if (error) {
+      // Provide more specific error messages
       const errorMessage = error.message.includes('Anonymous sign-ins are disabled')
         ? 'Guest access is currently unavailable. Please sign up with an email.'
         : error.message;
