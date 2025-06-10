@@ -3,13 +3,58 @@ import React from 'react';
 interface CardProps {
   className?: string;
   children: React.ReactNode;
+  variant?: 'default' | 'elevated' | 'outlined' | 'filled';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  interactive?: boolean;
+  onClick?: () => void;
 }
 
-const Card: React.FC<CardProps> = ({ className = '', children }) => {
+const Card: React.FC<CardProps> = ({
+  className = '',
+  children,
+  variant = 'default',
+  padding = 'md',
+  interactive = false,
+  onClick,
+}) => {
+  const baseClasses = 'rounded-xl transition-all duration-200';
+  
+  const variantClasses = {
+    default: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm',
+    elevated: 'bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl',
+    outlined: 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700',
+    filled: 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600',
+  };
+  
+  const paddingClasses = {
+    none: '',
+    sm: 'p-4',
+    md: 'p-6',
+    lg: 'p-8',
+  };
+  
+  const interactiveClasses = interactive 
+    ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800' 
+    : '';
+  
+  const cardClasses = `
+    ${baseClasses}
+    ${variantClasses[variant]}
+    ${paddingClasses[padding]}
+    ${interactiveClasses}
+    ${className}
+  `;
+
+  const Component = interactive ? 'button' : 'div';
+
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
+    <Component
+      className={cardClasses}
+      onClick={onClick}
+      {...(interactive && { role: 'button', tabIndex: 0 })}
+    >
       {children}
-    </div>
+    </Component>
   );
 };
 
@@ -20,7 +65,7 @@ interface CardHeaderProps {
 
 const CardHeader: React.FC<CardHeaderProps> = ({ className = '', children }) => {
   return (
-    <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>
+    <div className={`border-b border-gray-200 dark:border-gray-700 pb-4 mb-6 ${className}`}>
       {children}
     </div>
   );
@@ -33,7 +78,7 @@ interface CardContentProps {
 
 const CardContent: React.FC<CardContentProps> = ({ className = '', children }) => {
   return (
-    <div className={`px-6 py-4 ${className}`}>
+    <div className={className}>
       {children}
     </div>
   );
@@ -46,7 +91,7 @@ interface CardFooterProps {
 
 const CardFooter: React.FC<CardFooterProps> = ({ className = '', children }) => {
   return (
-    <div className={`px-6 py-4 bg-gray-50 border-t border-gray-200 ${className}`}>
+    <div className={`border-t border-gray-200 dark:border-gray-700 pt-4 mt-6 ${className}`}>
       {children}
     </div>
   );

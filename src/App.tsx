@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConfigurationError from './components/ConfigurationError';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -30,58 +31,62 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <Router>
-        <AuthProvider>
-          <ToastProvider>
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                
-                {/* Protected routes */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/resumes" element={
-                  <ProtectedRoute>
-                    <ResumesPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/resumes/:id" element={
-                  <ProtectedRoute>
-                    <ResumeDetailPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/jobs" element={
-                  <ProtectedRoute>
-                    <JobsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/jobs/:id" element={
-                  <ProtectedRoute>
-                    <JobDetailPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/shortlisted" element={
-                  <ProtectedRoute>
-                    <ShortlistedPage />
-                  </ProtectedRoute>
-                } />
-                
-                {/* Fallback routes */}
-                <Route path="/404" element={<NotFoundPage />} />
-                <Route path="*" element={<Navigate to="/404\" replace />} />
-              </Routes>
-            </Suspense>
-          </ToastProvider>
-        </AuthProvider>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <AuthProvider>
+            <ToastProvider>
+              <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
+                <Suspense fallback={<LoadingSpinner size="lg" text="Loading application..." />}>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
+                    <Route path="/terms" element={<TermsPage />} />
+                    
+                    {/* Protected routes */}
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute>
+                        <DashboardPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/resumes" element={
+                      <ProtectedRoute>
+                        <ResumesPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/resumes/:id" element={
+                      <ProtectedRoute>
+                        <ResumeDetailPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/jobs" element={
+                      <ProtectedRoute>
+                        <JobsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/jobs/:id" element={
+                      <ProtectedRoute>
+                        <JobDetailPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/shortlisted" element={
+                      <ProtectedRoute>
+                        <ShortlistedPage />
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Fallback routes */}
+                    <Route path="/404" element={<NotFoundPage />} />
+                    <Route path="*" element={<Navigate to="/404" replace />} />
+                  </Routes>
+                </Suspense>
+              </div>
+            </ToastProvider>
+          </AuthProvider>
+        </Router>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
