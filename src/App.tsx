@@ -36,7 +36,7 @@ function App() {
           <AuthProvider>
             <ToastProvider>
               <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
-                <Suspense fallback={<LoadingSpinner size="lg" text="Loading application..." />}>
+                <Suspense fallback={<LoadingSpinner size="lg\" text="Loading application..." />}>
                   <Routes>
                     {/* Public routes */}
                     <Route path="/" element={<LandingPage />} />
@@ -79,7 +79,7 @@ function App() {
                     
                     {/* Fallback routes */}
                     <Route path="/404" element={<NotFoundPage />} />
-                    <Route path="*" element={<Navigate to="/404" replace />} />
+                    <Route path="*" element={<Navigate to="/404\" replace />} />
                   </Routes>
                 </Suspense>
               </div>
