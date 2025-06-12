@@ -5,6 +5,7 @@ import Textarea from '../ui/Textarea';
 import { Plus, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { saveJobRequirement } from '../../lib/supabase';
+import { logEvent } from '../../utils/api';
 import { useToast } from '../../contexts/ToastContext';
 
 interface JobRequirementFormProps {
@@ -73,6 +74,19 @@ const JobRequirementForm: React.FC<JobRequirementFormProps> = ({ onSuccess }) =>
       
       if (error) throw new Error(error.message);
       
+      // Log analytics event for job creation
+      await logEvent({
+        action: 'job_requirement_create',
+        jobId: data?.id,
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          title: formData.title,
+          skillsCount: filteredSkills.length,
+          descriptionLength: formData.description.length
+        }
+      });
+      
       showToast('Job requirement created successfully', 'success');
       onSuccess();
       
@@ -89,6 +103,16 @@ const JobRequirementForm: React.FC<JobRequirementFormProps> = ({ onSuccess }) =>
         error instanceof Error ? error.message : 'Failed to create job requirement',
         'error'
       );
+      
+      // Log error event
+      await logEvent({
+        action: 'job_requirement_create_error',
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -187,7 +211,7 @@ const JobRequirementForm: React.FC<JobRequirementFormProps> = ({ onSuccess }) =>
           Create Job Requirement
         </Button>
       </div>
-    </form>
+    </div>
   );
 };
 

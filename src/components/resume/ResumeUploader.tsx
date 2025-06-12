@@ -3,6 +3,7 @@ import { Upload, AlertCircle } from 'lucide-react';
 import Button from '../ui/Button';
 import Alert from '../ui/Alert';
 import { uploadResume } from '../../lib/supabase';
+import { logEvent } from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface ResumeUploaderProps {
@@ -51,6 +52,19 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onUploadSuccess }) => {
         throw new Error(error.message);
       }
       
+      // Log analytics event for resume upload
+      await logEvent({
+        action: 'resume_upload',
+        resumeId: data?.id,
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        }
+      });
+      
       setFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -58,6 +72,19 @@ const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onUploadSuccess }) => {
       onUploadSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload resume.');
+      
+      // Log error event
+      if (user) {
+        await logEvent({
+          action: 'resume_upload_error',
+          userId: user.id,
+          timestamp: new Date().toISOString(),
+          metadata: {
+            error: err instanceof Error ? err.message : 'Unknown error',
+            fileName: file.name
+          }
+        });
+      }
     } finally {
       setIsUploading(false);
     }
