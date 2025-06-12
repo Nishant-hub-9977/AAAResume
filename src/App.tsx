@@ -18,6 +18,7 @@ const ResumeDetailPage = React.lazy(() => import('./pages/resumes/ResumeDetailPa
 const JobsPage = React.lazy(() => import('./pages/jobs/JobsPage'));
 const JobDetailPage = React.lazy(() => import('./pages/jobs/JobDetailPage'));
 const ShortlistedPage = React.lazy(() => import('./pages/shortlisted/ShortlistedPage'));
+const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
 const LandingPage = React.lazy(() => import('./pages/landing/LandingPage'));
 const PrivacyPage = React.lazy(() => import('./pages/legal/PrivacyPage'));
 const TermsPage = React.lazy(() => import('./pages/legal/TermsPage'));
@@ -36,7 +37,7 @@ function App() {
           <AuthProvider>
             <ToastProvider>
               <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
-                <Suspense fallback={<LoadingSpinner size="lg\" text="Loading application..." />}>
+                <Suspense fallback={<LoadingSpinner size="lg" text="Loading application..." />}>
                   <Routes>
                     {/* Public routes */}
                     <Route path="/" element={<LandingPage />} />
@@ -76,10 +77,15 @@ function App() {
                         <ShortlistedPage />
                       </ProtectedRoute>
                     } />
+                    <Route path="/admin/dashboard" element={
+                      <ProtectedRoute>
+                        <AdminDashboardPage />
+                      </ProtectedRoute>
+                    } />
                     
                     {/* Fallback routes */}
                     <Route path="/404" element={<NotFoundPage />} />
-                    <Route path="*" element={<Navigate to="/404\" replace />} />
+                    <Route path="*" element={<Navigate to="/404" replace />} />
                   </Routes>
                 </Suspense>
               </div>

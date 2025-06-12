@@ -70,3 +70,52 @@ export interface FilterOptions {
   matchScoreMax?: number;
   skills?: string[];
 }
+
+// Admin Dashboard Types
+export interface AdminDashboardMetrics {
+  overview: {
+    totalEvents: number;
+    totalUsers: number;
+    activeUsers: number;
+    systemHealth: 'healthy' | 'degraded' | 'unhealthy';
+  };
+  eventBreakdown: Array<{
+    action: string;
+    count: number;
+    percentage: number;
+  }>;
+  recentActivity: Array<{
+    action: string;
+    timestamp: string;
+    userId: string;
+    metadata?: Record<string, any>;
+  }>;
+  dailyActivity: Array<{
+    date: string;
+    count: number;
+  }>;
+  topActions: Array<{
+    action: string;
+    count: number;
+  }>;
+  timestamp: string;
+}
+
+export interface SystemHealth {
+  overallHealth: 'healthy' | 'degraded' | 'unhealthy';
+  services: {
+    bigquery: ServiceHealth;
+    vertexai: ServiceHealth;
+    storage: ServiceHealth;
+    server: ServiceHealth;
+  };
+  timestamp: string;
+}
+
+export interface ServiceHealth {
+  status: 'healthy' | 'unhealthy';
+  message?: string;
+  uptime?: number;
+  memory?: NodeJS.MemoryUsage;
+  timestamp?: string;
+}

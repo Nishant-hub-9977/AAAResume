@@ -100,3 +100,45 @@ export const getResumeInsights = async (resumeId: string): Promise<any> => {
   
   return await response.json();
 };
+
+// Admin API functions
+export const getAdminDashboardMetrics = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/dashboard`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch admin metrics: ${response.statusText}`);
+  }
+  
+  const result = await response.json();
+  return result.data;
+};
+
+export const getSystemHealth = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/system/health`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch system health: ${response.statusText}`);
+  }
+  
+  return await response.json();
+};
+
+export const getUserAnalytics = async (userId: string) => {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/analytics`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user analytics: ${response.statusText}`);
+  }
+  
+  return await response.json();
+};
+
+export const getStorageStats = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/storage/stats`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch storage stats: ${response.statusText}`);
+  }
+  
+  return await response.json();
+};
