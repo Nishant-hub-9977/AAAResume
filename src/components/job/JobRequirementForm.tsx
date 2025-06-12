@@ -211,7 +211,7 @@ const JobRequirementForm: React.FC<JobRequirementFormProps> = ({ onSuccess }) =>
           Create Job Requirement
         </Button>
       </div>
-    </div>
+    </form>
   );
 };
 
