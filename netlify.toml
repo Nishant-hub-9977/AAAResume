@@ -7,8 +7,9 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server/:splat"
+  to = "http://localhost:3001/api/:splat"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
@@ -23,11 +24,3 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self' https://*.supabase.co https://*.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.pexels.com https://*.supabase.co; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.googleapis.com;"
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-
-[[edge_functions]]
-  function = "server"
-  path = "/api/*"
