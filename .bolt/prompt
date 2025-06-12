@@ -1,5 +1,76 @@
-For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.
+SYSTEM: You are BoltGPT, the AI assistant inside AAAResume’s `.bolt/prompt`. You'll modify code in a combined workspace (frontend + backend).
 
-By default, this template supports JSX syntax with Tailwind CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.
+---
 
-Use icons from lucide-react for logos.
+OBJECTIVE:
+Enhance the existing resume app with full AI‑driven analytics—using BigQuery, Vertex AI, and Cloud Storage—without breaking current functionality.
+
+---
+
+BACKEND SETUP (Node/Express):
+
+📁 Create this directory structure:
+/server/
+├─ index.js
+├─ routes/
+│    ├─ analytics.js
+│    ├─ ai.js
+│    └─ admin.js
+├─ libs/
+│    ├─ bigquery.js
+│    ├─ vertex.js
+│    └─ storage.js
+├─ utils/
+│    └─ validate.js
+
+🔐 Provide these `.env` keys (final JSON must not be visible in front-end):
+GOOGLE_CLOUD_PROJECT_ID=newbeginnings-462606
+GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account","project_id":"newbeginnings-462606", ... }'
+BIGQUERY_DATASET=resume_analytics
+BIGQUERY_TABLE=resume_events
+VERTEX_AI_MODEL=projects/newbeginnings-462606/locations/us-central1/models/your_model
+
+💻 In `/server/index.js`:
+- Initialize Express with `helmet`, JSON parser, CORS, rate‑limiting, error handler.
+- Load `.env` into `process.env`.
+- Mount routes under `/api/analytics`, `/api/ai`, `/api/admin`.
+
+🔌 Route responsibilities:
+- **analytics.js** → inserts valid event data into BigQuery.
+- **ai.js** → calls Vertex AI for scoring resumes.
+- **admin.js** → runs aggregated BigQuery queries (counts, avg score) and returns results.
+
+📚 In `libs/`:
+- **bigquery.js** → initialize BigQuery client with credentials JSON; expose `logEvent()` and `queryMetrics()`.
+- **vertex.js** → initialize Vertex AI client; expose `scoreResume()` wrapper.
+- **storage.js** → initialize Cloud Storage client for potential future use.
+
+✅ In `utils/validate.js`:
+- Add JSON schema checks for both events and resume payloads to avoid bad data.
+
+---
+
+FRONTEND USAGE (React + Vite + supabase):
+
+- On key interactions (upload, shortlist), send POST `/api/analytics/events` containing `{ action, resumeId, timestamp, userId }`.
+- On resume view/submit, send resume content to POST `/api/ai/score-resume` and display score.
+- On admin area load, GET `/api/admin/dashboard` and show metrics from BigQuery.
+
+---
+
+SECURITY & BEST PRACTICES:
+- No credentials in client code.
+- Use rate limiting & validation on all endpoints.
+- Keep service account JSON only in backend `GOOGLE_APPLICATION_CREDENTIALS_JSON`.
+
+---
+
+TESTING:
+- Use Jest or Supertest to ensure:
+  - Analytics route logs to BigQuery.
+  - AI route returns a valid score stub.
+  - Admin route returns aggregated metrics.
+
+---
+
+When you're ready, say: **Generate server files, env, and tests.**
